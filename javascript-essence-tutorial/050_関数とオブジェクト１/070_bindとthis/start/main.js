@@ -1,15 +1,25 @@
-window.name = 'John';
+window.name = 'John'
 
 const person = {
-    name: 'Tom',
-    hello: function() {
-        console.log('Hello ' + this.name);
-    }
+  name: 'Tom',
+  hello: function () {
+    console.log('Hello ' + this.name)
+  },
 }
-person.hello();
+person.hello()
+
+const helloTom = person.hello.bind(person)
 
 function fn(ref) {
-    ref();
+  ref()
 }
 
-fn(person.hello);
+fn(helloTom)
+
+function a(name) {
+  console.log('Hello ' + name)
+}
+
+const b = a.bind(null, 'Tim')
+
+b('Tom')
