@@ -1,16 +1,23 @@
 function sleep(val) {
-  return new Promise(function(resolve) {
-    setTimeout(function() {
-      console.log(val++);
-      resolve(val);
-    }, 1000);
-  });
+  return new Promise(function (resolve, reject) {
+    setTimeout(function () {
+      console.log(val++)
+      reject(val)
+    }, val * 500)
+  })
 }
 
-sleep(0).then(function(val) {
-  return sleep(val);
-}).then(function(val) {
-  return sleep(val);
-}).then(function(val) {
-  return sleep(val);
-})
+Promise.allSettled([sleep(2), sleep(3), sleep(4)])
+  .then(function (data) {
+    console.log(data)
+  })
+  .catch(function (e) {
+    console.error(e)
+  })
+// sleep(0).then(function(val) {
+//   return sleep(val);
+// }).then(function(val) {
+//   return sleep(val);
+// }).then(function(val) {
+//   return sleep(val);
+// })
