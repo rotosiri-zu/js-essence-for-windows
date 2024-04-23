@@ -1,10 +1,19 @@
+function fn() {
+  'use strict'
+  console.log(this)
+}
 class C {
-    constructor() {
-    }
+  constructor() {
+    fn()
+  }
 
-    method() {
+  method() {
+    function fn() {
+      console.log(this)
     }
+    fn()
+  }
 }
 
-const c = new C();
-c.method();
+const c = new C()
+c.method()
