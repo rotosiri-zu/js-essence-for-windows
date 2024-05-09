@@ -1,77 +1,90 @@
 const handler = {
   get(target, key, receiver) {
-    const res = Reflect.get(target, key, receiver);
-    console.log('%c[reactive:get]', 'background: green; color: white;', target, key, res);
-    track(target, key);
-    return res;
+    const res = Reflect.get(target, key, receiver)
+    console.log('%c[reactive:get]', 'background: green; color: white;', target, key, res)
+    track(target, key)
+    return res
   },
   set(target, key, value, receiver) {
-    const res = Reflect.set(target, key, value, receiver);
-    console.log('%c[reactive:set]', 'background: red; color: white;', target, key, value);
-    trigger(target, key);
-    return res;
-  }
+    const res = Reflect.set(target, key, value, receiver)
+    console.log('%c[reactive:set]', 'background: red; color: white;', target, key, value)
+    trigger(target, key)
+    return res
+  },
 }
 function reactive(target) {
-  return new Proxy(target, handler);
+  return new Proxy(target, handler)
 }
 
-let activeEffect = null;
-function effect(fn) {
+let activeEffect = null
+function effect(fn, { computed = false } = {}) {
   try {
-    activeEffect = fn;
-    activeEffect();
-    return activeEffect;
+    activeEffect = fn
+    activeEffect.computed = computed
+    if (computed) {
+      activeEffect.dirty = true
+    }
+    activeEffect()
+    return activeEffect
   } finally {
-    activeEffect = null;
+    activeEffect = null
   }
 }
 
-const targetMap = new WeakMap();
+const targetMap = new WeakMap()
 function track(target, key) {
   if (activeEffect === null) {
-    return;
+    return
   }
-  let depsMap = targetMap.get(target);
+  let depsMap = targetMap.get(target)
 
   if (!depsMap) {
-    targetMap.set(target, (depsMap = new Map()));
+    targetMap.set(target, (depsMap = new Map()))
   }
 
-  let deps = depsMap.get(key);
+  let deps = depsMap.get(key)
   if (!deps) {
-    depsMap.set(key, (deps = new Set()));
+    depsMap.set(key, (deps = new Set()))
   }
 
   if (!deps.has(activeEffect)) {
-    console.log('%c[effect:register]', 'background: blue; color: white;', target, key, activeEffect);
-    deps.add(activeEffect);
+    console.log('%c[effect:register]', 'background: blue; color: white;', target, key, activeEffect)
+    deps.add(activeEffect)
   }
 }
 
 function trigger(target, key) {
-  const depsMap = targetMap.get(target);
+  const depsMap = targetMap.get(target)
   if (!depsMap) {
-    return;
+    return
   }
-  const deps = depsMap.get(key);
+  const deps = depsMap.get(key)
   if (!deps) {
-    return;
+    return
   }
-  deps.forEach(effect => effect());
+  deps.forEach((effect) => {
+    if (effect.computed) {
+      effect.dirty = true
+    } else {
+      effect()
+    }
+  })
 }
 
 function computed(getter) {
-  let computed;
-  const runner = effect(getter);
+  let computed, value
+  const runner = effect(getter, { computed: true })
 
   computed = {
     get value() {
-      const value = runner();
-      console.log('%c[computed:refresh]', 'background: purple; color: white;', value);
-      return value;
-    }
+      if (runner.dirty) {
+        value = runner()
+        runner.dirty = false
+        console.log('%c[computed:refresh]', 'background: purple; color: white;', value)
+      }
+      return value
+    },
   }
-  return computed;
+  return computed
 }
-export { effect, trigger, reactive, computed };
+export { effect, trigger, reactive, computed }
