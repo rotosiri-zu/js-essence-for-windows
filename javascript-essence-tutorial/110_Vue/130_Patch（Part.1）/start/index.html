@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html>
-
-<body>
+  <body>
     <div id="app"></div>
 
     <script type="module">
-        
-    </script>
-</body>
+      import { createVNode, patch } from './renderer.js'
+      import { nodeOps } from './nodeOps.js'
 
+      const container = nodeOps.qs('#app')
+      const preVNode = createVNode()
+      const nextVNode = createVNode('div', { class: 'demo' }, 'hello')
+      patch(preVNode, nextVNode, container)
+    </script>
+  </body>
 </html>
